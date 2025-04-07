@@ -1,7 +1,9 @@
 <template>
   <div class="gallery">
     <h1>Photography Gallery</h1>
-    <div class="image-grid">
+    <div v-if="loading">Loading images...</div>
+    <div v-else-if="error">{{ error }}</div>
+    <div v-else class="image-grid">
       <div v-for="image in images" :key="image.id" class="image-card">
         <img :src="image.url" :alt="image.alt" />
         <p>{{ image.alt }}</p>
@@ -11,15 +13,24 @@
 </template>
 
 <script>
+import { fetchImages } from "@/services/api.js";
+
 export default {
   data() {
     return {
-      images: [
-        { id: 1, url: "images/photo1.jpg", alt: "Front of the House" },
-        { id: 2, url: "images/photo2.jpg", alt: "Side angle view of the House" },
-        { id: 3, url: "images/photo3.jpg", alt: "Side view of the House"}
-      ],
+      images: [],
+      loading: true,
+      error: null
     };
+  },
+  async mounted() {
+    try {
+      this.images = await fetchImages();
+    } catch (err) {
+      this.error = err.message;
+    } finally {
+      this.loading = false;
+    }
   },
 };
 </script>

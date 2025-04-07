@@ -1,7 +1,7 @@
 <template>
   <div class="contact">
     <h1>Contact Me</h1>
-    <form @submit.prevent="submitForm">
+    <form @submit.prevent="handleSubmit">
       <label for="name">Name:</label>
       <input type="text" id="name" v-model="form.name" @input="validateName" required />
       <p v-if="errors.name" class="error-message">{{ errors.name }}</p>
@@ -14,73 +14,60 @@
       <textarea id="message" v-model="form.message" @input="validateMessage" required />
       <p v-if="errors.message" class="error-message">{{ errors.message }}</p>
 
-      <button type="submit" :disabled="hasErrors">Send</button>
+      <button type="submit" :disabled="hasErrors" @click="logFormData">Send</button>
     </form>
     <p v-if="submitted" class="success-message">Message Sent Successfully!</p>
+    <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
   </div>
 </template>
 
 <script>
+import { submitContactForm } from "@/services/api.js";
+
 export default {
   data() {
     return {
-      form: {
-        name:"",
-        email:"",
-        message:"",
-      },
-      errors: {
-        name: "",
-        email: "",
-        message: "",
-      },
+      form:{ name: "", email: "", message: ""},
+      errors: { name: "", email: "", message: ""},
       submitted: false,
+      errorMessage: "", //For API error messages
     };
+  },
+  mounted() {
+    console.log("ContactView mounted ✅");
   },
   computed: {
     hasErrors() {
-      return this.errors.name || this.errors.email || this.errors.message;
+      return false;
     },
   },
   methods: {
+    logFormData() {
+      console.log('Form Data:', this.form);
+    },
     validateName() {
-      if (this.form.name.length < 3) {
-        this.errors.name = "Name must be at least 3 characters.";
-      } else {
-        this.errors.name="";
-      }
+      this.errors.name = this.form.name.length < 3 ? "Name must be at least 3 characters." : "";
     },
     validateEmail() {
       const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailPattern.test(this.form.email)) {
-        this.errors.email = "Please enter a valid email address.";
-      } else {
-        this.errors.email = "";
-      }
+      this.errors.email = !emailPattern.test(this.form.email) ? "Please enter a valid email address." : "";
     },
     validateMessage() {
-      if (this.form.message.length < 10) {
-        this.errors.message = "Message must be at least 10 characters long.";
-      } else {
-        this.errors.message = "";
-      }
+      this.errors.message = this.form.message.length < 10 ? "Message must be at least 10 characters long." : "";
     },
-    submitForm() {
-      this.validateName();
-      this.validateEmail();
-      this.validateMessage();
-      if (!this.hasErrors) {
-        console.log("Form Data: this.form");
+    async submitForm() {
+      if (this.hasErrors) return;
+
+      try {
+        await submitContactForm(this.form);
         this.submitted = true;
+        this.form = { name: "", email: "", message: "" };
+        this.errorMessage = ""; // Clear any previous errors
 
-        //Reset success message after a few seconds
-        this.form.name = "";
-        this.form.email = "";
-        this.form.message = "";
-
-          setTimeout(() => {
-          this.submitted = false;
-        }, 3000); //Clear form after submission
+        setTimeout(() => (this.submitted = false), 3000);
+      } catch (error) {
+        console.error("Error:", error);
+        this.errorMessage = "Failed to send message. Please try again later.";
       }
     },
   },

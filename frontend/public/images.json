@@ -1,0 +1,17 @@
+[
+  {
+    "id": 1,
+    "url": "/images/photo1.jpg",
+    "alt": "Front of the House"
+  },
+  {
+    "id": 2,
+    "url": "/images/photo2.jpg",
+    "alt": "Side angle view of the House"
+  },
+  {
+    "id": 3,
+    "url": "/images/photo3.jpg",
+    "alt": "Backyard Garden"
+  }
+]
