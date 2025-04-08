@@ -13,8 +13,6 @@
 </template>
 
 <script>
-import { fetchImages } from "@/services/api.js";
-
 export default {
   data() {
     return {
@@ -25,7 +23,11 @@ export default {
   },
   async mounted() {
     try {
-      this.images = await fetchImages();
+      const response = await fetch("http://localhost:8080/api/gallery");
+      if (!response.ok) {
+        throw new Error("Failed to fetch images");
+      }
+      this.images = await response.json();
     } catch (err) {
       this.error = err.message;
     } finally {
